@@ -1,8 +1,18 @@
 package com.wildcodeschool.wildandwizard.repository;
 
-import com.wildcodeschool.wildandwizard.entity.School;
-
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.wildcodeschool.wildandwizard.entity.School;
+import com.wildcodeschool.wildandwizard.entity.Wizard;
+import com.wildcodeschool.wildandwizard.util.JdbcUtils;
+
 
 public class SchoolRepository {
 
@@ -11,20 +21,103 @@ public class SchoolRepository {
     private final static String DB_PASSWORD = "Horcrux4life!";
 
     public List<School> findAll() {
+    	
+    	Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DriverManager.getConnection(
+                    DB_URL, DB_USER, DB_PASSWORD
+            );
+            statement = connection.prepareStatement(
+                    "SELECT * FROM school;"
+            );
+            resultSet = statement.executeQuery();
 
-        // TODO : find all schools
+            List<School> school = new ArrayList<>();
+           
+            while (resultSet.next()) {
+                Long id = resultSet.getLong("id");
+                String name = resultSet.getString("name");
+                Long capacity = resultSet.getLong("capacity");
+                String country = resultSet.getString("country");
+                school.add(new School(id, name, capacity, country));
+            }
+            return school;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.closeResultSet(resultSet);
+            JdbcUtils.closeStatement(statement);
+            JdbcUtils.closeConnection(connection);
+        }
         return null;
     }
+    
 
     public School findById(Long id) {
+    	 Connection connection = null;
+         PreparedStatement statement = null;
+         ResultSet resultSet = null;
+         try {
+             connection = DriverManager.getConnection(
+                     DB_URL, DB_USER, DB_PASSWORD
+             );
+             statement = connection.prepareStatement(
+                     "SELECT * FROM School WHERE id = ?;"
+             );
+             statement.setLong(1, id);
+             resultSet = statement.executeQuery();
 
-        // TODO : find a school by id
-        return null;
+             if (resultSet.next()) {
+                 String name= resultSet.getString("name");
+                 Long capacity = resultSet.getLong("capacity");                
+                 String country = resultSet.getString("country");
+                 return new School(id, name, capacity, country);
+             }
+         } catch (SQLException e) {
+             e.printStackTrace();
+         } finally {
+             JdbcUtils.closeResultSet(resultSet);
+             JdbcUtils.closeStatement(statement);
+             JdbcUtils.closeConnection(connection);
+         }
+         return null;
     }
 
     public List<School> findByCountry(String country) {
+    	Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DriverManager.getConnection(
+                    DB_URL, DB_USER, DB_PASSWORD
+            );
+            statement = connection.prepareStatement(
+                    "SELECT * FROM School WHERE country LIKE ?;"
+            );
+            statement.setString(1, country);
+            resultSet = statement.executeQuery();
 
-        // TODO : search schools by country
+            List<School> school = new ArrayList<>();
+
+            while (resultSet.next()) {
+            	 Long id = resultSet.getLong("id");
+                 String name = resultSet.getString("name");
+                 Long capacity = resultSet.getLong("capacity");
+                 school.add(new School(id, name, capacity, country ));
+            }
+            
+            return school;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JdbcUtils.closeResultSet(resultSet);
+            JdbcUtils.closeStatement(statement);
+            JdbcUtils.closeConnection(connection);
+        }
         return null;
+        // TODO : search schools by country
     }
 }
